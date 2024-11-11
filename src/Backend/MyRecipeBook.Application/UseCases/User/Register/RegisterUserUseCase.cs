@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using FluentValidation.Results;
 using MyRecipeBook.Application.Services.Cryptography;
 using MyRecipeBook.Communication.Requests;
 using MyRecipeBook.Communication.Responses;
 using MyRecipeBook.Domain.Repositories;
 using MyRecipeBook.Domain.Repositories.User;
+using MyRecipeBook.Exceptions;
 using MyRecipeBook.Exceptions.ExceptionsBase;
 
 namespace MyRecipeBook.Application.UseCases.User.Register
@@ -33,7 +35,7 @@ namespace MyRecipeBook.Application.UseCases.User.Register
 
         public async Task<ResponseResgisterUserJson> Execute(RequestRegisterUserJson request)
         {
-            Validate(request);
+            await Validate(request);
 
             var user = _mapper.Map<Domain.Entities.User>(request);
 
@@ -49,10 +51,16 @@ namespace MyRecipeBook.Application.UseCases.User.Register
             };
         }
 
-        private void Validate(RequestRegisterUserJson request)
+        private async Task Validate(RequestRegisterUserJson request)
         {
             var validator = new RegisterUserValidator();
             var result = validator.Validate(request);
+
+            var emailExist = await _readOnlyRepository.ExistActiveUserWithEmail(request.Email);
+            if (emailExist)
+            {
+                result.Errors.Add(new ValidationFailure(string.Empty, ResourceMessagesException.EMAIL_ALREADY_REGISTERED));
+            }
             
             if (!result.IsValid)
             {
