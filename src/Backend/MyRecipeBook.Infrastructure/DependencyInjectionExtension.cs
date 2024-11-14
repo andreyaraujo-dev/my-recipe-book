@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection;
+using FluentMigrator.Runner;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyRecipeBook.Domain.Repositories;
@@ -15,6 +17,7 @@ namespace MyRecipeBook.Infrastructure
         {
             AddRepositories(services);
             AddDbContext(services, configuration);
+            AddFluentMigrator(services, configuration);
         }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
@@ -33,6 +36,16 @@ namespace MyRecipeBook.Infrastructure
 
             services.AddScoped<IUserWriteOnlyRepository, UserRepository>();
             services.AddScoped<IUserReadOnlyRepository, UserRepository>();
+        }
+
+        private static void AddFluentMigrator(IServiceCollection services, IConfiguration configuration)
+        {
+            var connectionString = configuration.ConnectionString();
+            services.AddFluentMigratorCore().ConfigureRunner(options =>
+            {
+                options.AddSqlServer().WithGlobalConnectionString(connectionString)
+                    .ScanIn(Assembly.Load("MyRecipeBook.Infrastructure")).For.All();
+            });
         }
     }
 }
