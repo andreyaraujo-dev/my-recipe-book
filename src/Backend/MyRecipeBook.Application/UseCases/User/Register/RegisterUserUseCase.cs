@@ -47,7 +47,7 @@ namespace MyRecipeBook.Application.UseCases.User.Register
 
             return new ResponseResgisterUserJson
             { 
-                Name = request.Name
+                Name = user.Name
             };
         }
 
