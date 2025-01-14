@@ -9,7 +9,7 @@ on:
       - '**'
 
 jobs:
-  build:
+  build-and-test:
     runs-on: windows-latest
 
     steps:
@@ -22,17 +22,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0' # Ajuste para a versão do seu projeto
-
-      # Instalação do ReportGenerator
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      # Adiciona ferramentas globais ao PATH
-      - name: Add .NET tools to PATH
-        run: |
-          $env:Path += ";$([System.Environment]::GetFolderPath('UserProfile'))\.dotnet\tools"
-          echo "Updated PATH: $env:Path"
-        shell: pwsh
 
       # Restauração das dependências
       - name: Install dependencies
@@ -48,11 +37,33 @@ jobs:
           dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./test-results
         shell: pwsh
 
-      # Gerar o relatório de cobertura
-      - name: Prepare code coverage report
-        run: |
-          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:SonarQube
-        shell: pwsh
+      # Salvar os artefatos para análise no SonarCloud
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: ./test-results
+
+  sonarcloud-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      # Checkout do código
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Download dos resultados dos testes
+      - name: Download test results
+        uses: actions/download-artifact@v3
+        with:
+          name: test-results
+
+      # Configuração do .NET Core
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0' # Ajuste para a versão do seu projeto
 
       # Análise do SonarCloud
       - name: SonarCloud Scan
@@ -62,10 +73,3 @@ jobs:
             -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      
-      # Publish the test results
-      - name: Publish Test Results
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: ./test-results
