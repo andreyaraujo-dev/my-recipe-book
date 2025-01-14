@@ -19,6 +19,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     services.Remove(descriptor);
 
                 var provider = services.AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+                
                 services.AddDbContext<MyRecipeBookDbContext>(options =>
                 {
                     options.UseInMemoryDatabase("InMemoryDbForTesting");

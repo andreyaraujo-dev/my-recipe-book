@@ -8,4 +8,9 @@ public static class ConfigurationExtension
     {
         return configuration.GetConnectionString("Connection")!;
     }
+
+    public static bool IsUnitTestEnvironment(this IConfiguration configuration)
+    {
+        return configuration.GetValue<bool>("InMemoryTest");
+    }
 }
