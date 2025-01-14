@@ -13,37 +13,48 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Checkout the code
+      # Checkout do código
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up .NET Core
+      # Configuração do .NET Core
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0' # Ajuste para a versão do seu projeto
 
-      # Install dependencies
+      # Instalação do ReportGenerator
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      # Adiciona ferramentas globais ao PATH
+      - name: Add .NET tools to PATH
+        run: |
+          $env:Path += ";$([System.Environment]::GetFolderPath('UserProfile'))\.dotnet\tools"
+          echo "Updated PATH: $env:Path"
+        shell: pwsh
+
+      # Restauração das dependências
       - name: Install dependencies
         run: dotnet restore
 
-      # Build the project
+      # Build do projeto
       - name: Build
         run: dotnet build --no-restore
 
-      # Run tests and generate code coverage
+      # Execução dos testes
       - name: Run tests
-        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./test-results
+        run: |
+          dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./test-results
+        shell: pwsh
 
-      # Convert code coverage for SonarCloud
+      # Gerar o relatório de cobertura
       - name: Prepare code coverage report
         run: |
-          reportgenerator \
-            -reports:**/coverage.cobertura.xml \
-            -targetdir:coverage-report \
-            -reporttypes:SonarQube
+          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:SonarQube
+        shell: pwsh
 
-      # Run SonarCloud analysis
+      # Análise do SonarCloud
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -51,7 +62,7 @@ jobs:
             -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+      
       # Publish the test results
       - name: Publish Test Results
         uses: actions/upload-artifact@v3
