@@ -24,7 +24,7 @@ public static class DatabaseMigration
         parameters.Add("name", dataBaseName);
 
         var records = dbConnection.Query("SELECT * FROM sys.databases WHERE name = @name", parameters);
-        if (records.Any() == false) dbConnection.Execute($"CREATE DATABASE {dataBaseName}");
+        if (!records.Any()) dbConnection.Execute($"CREATE DATABASE {dataBaseName}");
     }
 
     private static void MigrationDatabase(IServiceProvider serviceProvider)
