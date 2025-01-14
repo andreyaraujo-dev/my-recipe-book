@@ -53,10 +53,10 @@ public class RegisterUserUseCaseTest
                         e.ErrorsMessages.Contains(ResourceMessagesException.NAME_EMPTY));
     }
 
-    private RegisterUserUseCase CreateUseCase(string? email = null)
+    private static RegisterUserUseCase CreateUseCase(string? email = null)
     {
         var mapper = MapperBuilder.Build();
-        var passwordEncripter = PasswordEncripterBuilder.Build();
+        var passwordEncrypter = PasswordEncripterBuilder.Build();
         var writeRepository = UserWriteOnlyRepositoryBuilder.Build();
         var unitOfWork = UnitOfWorkBuilder.Build();
         var readRepositoryBuilder = new UserReadOnlyRepositoryBuilder();
@@ -64,6 +64,6 @@ public class RegisterUserUseCaseTest
         if (string.IsNullOrEmpty(email) == false)
             readRepositoryBuilder.ExistsActiveUserWithEmail(email);
         
-        return new RegisterUserUseCase(writeRepository, readRepositoryBuilder.Build(), mapper, passwordEncripter, unitOfWork);
+        return new RegisterUserUseCase(writeRepository, readRepositoryBuilder.Build(), mapper, passwordEncrypter, unitOfWork);
     }
 }
