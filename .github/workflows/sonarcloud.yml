@@ -1,0 +1,63 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Set up .NET Core
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0' # Ajuste para a versão do seu projeto
+
+      # Install dependencies
+      - name: Install dependencies
+        run: dotnet restore
+
+      # Build the project
+      - name: Build
+        run: dotnet build --no-restore
+
+      # Run tests and generate code coverage
+      - name: Run tests
+        run: |
+          dotnet test --no-build --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./test-results
+
+      # Convert code coverage for SonarCloud
+      - name: Prepare code coverage report
+        run: |
+          reportgenerator \
+            -reports:**/coverage.cobertura.xml \
+            -targetdir:coverage-report \
+            -reporttypes:SonarQube
+
+      # Run SonarCloud analysis
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Publish the test results
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: ./test-results
