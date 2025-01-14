@@ -33,10 +33,7 @@ jobs:
 
       # Run tests and generate code coverage
       - name: Run tests
-        run: |
-          dotnet test --no-build --verbosity normal \
-          --collect:"XPlat Code Coverage" \
-          --results-directory ./test-results
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./test-results
 
       # Convert code coverage for SonarCloud
       - name: Prepare code coverage report
