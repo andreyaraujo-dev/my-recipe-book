@@ -36,6 +36,15 @@ jobs:
           dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./test-results
         shell: pwsh
 
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+        shell: pwsh
+
+      - name: Convert coverage to OpenCover format
+        run: |
+          reportgenerator -reports:./test-results/**/coverage.cobertura.xml -targetdir:./test-results/coverage -reporttypes:opencover
+        shell: pwsh
+
       # Salvar os artefatos para análise no SonarCloud
       - name: Upload test results
         uses: actions/upload-artifact@v3
@@ -75,6 +84,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"andreyaraujo-dev_my-recipe-book" /o:"andreyaraujo" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"andreyaraujo-dev_my-recipe-book" /o:"andreyaraujo" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths=./test-results/**/coverage.opencover.xml
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
