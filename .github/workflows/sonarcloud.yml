@@ -34,7 +34,7 @@ jobs:
       # Execução dos testes
       - name: Run tests with Coverlet
         run: |
-          dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./test-results --logger:xunit /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./test-results/
+          dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./test-results /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./test-results/
         shell: pwsh
 
       - name: List test result files
