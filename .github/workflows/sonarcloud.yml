@@ -34,21 +34,12 @@ jobs:
       # Execução dos testes
       - name: Run tests with Coverlet
         run: |
-          dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./test-results /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./test-results/
+          dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./test-results /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=../../test-results/
         shell: pwsh
 
       - name: List test result files
         run: dir .\test-results\* /s
         shell: cmd
-
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
-        shell: pwsh
-
-      - name: Convert coverage to OpenCover format
-        run: |
-          reportgenerator -reports:./test-results/**/coverage.cobertura.xml -targetdir:./test-results/coverage -reporttypes:opencover
-        shell: pwsh
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -83,6 +74,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"andreyaraujo-dev_my-recipe-book" /o:"andreyaraujo" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"andreyaraujo-dev_my-recipe-book" /o:"andreyaraujo" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths=./test-results/coverage.opencover.xml
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
