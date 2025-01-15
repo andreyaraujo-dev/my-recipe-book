@@ -1,0 +1,85 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      # Checkout do repositório
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+    
+      # Configuração do .NET Core
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0' # Ajuste para a versão do seu projeto
+
+      # Restauração das dependências
+      - name: Install dependencies
+        run: dotnet restore
+
+      # Build do projeto
+      - name: Build
+        run: dotnet build --no-restore
+
+      # Execução dos testes
+      - name: Run tests with Coverlet
+        run: |
+          dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./test-results /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=../../test-results/
+        shell: pwsh
+
+      - name: List test result files
+        run: dir .\test-results\* /s
+        shell: cmd
+      - name: List root files
+        run: dir .\* /s
+        shell: cmd
+      - name: List test files
+        run: dir .\tests\UseCases.Test\* /s
+        shell: cmd
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available.
+     
+      - name: Cache SonarQube Cloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+     
+      - name: Cache SonarQube Cloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v4
+        with:
+          path: .\.sonar\scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+     
+      - name: Install SonarQube Cloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          New-Item -Path .\.sonar\scanner -ItemType Directory
+          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+     
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"andreyaraujo-dev_my-recipe-book" /o:"andreyaraujo" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths=./test-results/coverage.opencover.xml
+          dotnet build
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
