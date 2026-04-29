@@ -10,6 +10,7 @@ using MyRecipeBook.Infrastructure.DataAccess;
 using MyRecipeBook.Infrastructure.DataAccess.Repositories;
 using MyRecipeBook.Infrastructure.Extensions;
 using MyRecipeBook.Infrastructure.Security.Tokens.Generator;
+using MyRecipeBook.Infrastructure.Security.Tokens.Validator;
 
 namespace MyRecipeBook.Infrastructure
 {
@@ -61,6 +62,7 @@ namespace MyRecipeBook.Infrastructure
             var signinKey = configuration.GetValue<string>("Settings:Jwt:SigningKey");
             
             services.AddScoped<IAccessTokenGenerator>(option => new JwtTokenGenerator(expirationTimeMinutes, signinKey!));
+            services.AddScoped<IAccessTokenValidator>(options => new JwtTokenValidator(signinKey!));
         }
     }
 }

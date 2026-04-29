@@ -135,4 +135,10 @@
   <data name="UNKNOWN_ERROR" xml:space="preserve">
     <value>Erro desconhecido.</value>
   </data>
+  <data name="NO_TOKEN" xml:space="preserve">
+    <value>O token de acesso não foi enviado.</value>
+  </data>
+  <data name="USER_WITHOUT_PERMISSION_ACCESS_RESOURCE" xml:space="preserve">
+    <value>Usuário não tem permissão para acessar este recurso.</value>
+  </data>
 </root>

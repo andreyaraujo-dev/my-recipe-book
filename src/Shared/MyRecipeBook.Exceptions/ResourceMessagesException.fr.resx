@@ -135,4 +135,10 @@
   <data name="UNKNOWN_ERROR" xml:space="preserve">
     <value>Erreur inconnue.</value>
   </data>
+  <data name="NO_TOKEN" xml:space="preserve">
+    <value>Le jeton d'accès n'a pas été envoyé.</value>
+  </data>
+  <data name="USER_WITHOUT_PERMISSION_ACCESS_RESOURCE" xml:space="preserve">
+    <value>L'utilisateur n'est pas autorisé à accéder à cette ressource.</value>
+  </data>
 </root>

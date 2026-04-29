@@ -1,3 +1,4 @@
+using Microsoft.OpenApi;
 using MyRecipeBook.API.Converters;
 using MyRecipeBook.API.Filters;
 using MyRecipeBook.API.Middleware;
@@ -13,7 +14,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new StringConverter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "bearer",
+        In =  ParameterLocation.Header,
+        Name = "Authorization",
+        BearerFormat = "JWT",
+        Description = @"JWT Authorization header using the Bearer scheme.
+                        Enter 'Bearer' [space] and then your token..."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
 
 builder.Services.AddMvc(options => options.Filters.Add(typeof(ExceptionFilter)));
 
@@ -47,7 +65,7 @@ void MigrateDatabase()
 {
     if (builder.Configuration.IsUnitTestEnvironment())
         return;
-    
+
     var connectionString = builder.Configuration.ConnectionString();
     var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
     DatabaseMigration.Migrate(connectionString, serviceScope.ServiceProvider);
