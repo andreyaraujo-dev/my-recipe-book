@@ -37,8 +37,9 @@ public class DoLoginTest : MyRecipeBookClassFixture
         var response = await DoPost(method, request);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         await using var responseBody = await response.Content.ReadAsStreamAsync();
-        var responseDAta = await JsonDocument.ParseAsync(responseBody);
-        responseDAta.RootElement.GetProperty("name").GetString().Should().NotBeNullOrWhiteSpace().And.Be(_name);
+        var responseData = await JsonDocument.ParseAsync(responseBody);
+        responseData.RootElement.GetProperty("name").GetString().Should().NotBeNullOrWhiteSpace().And.Be(_name);
+        responseData.RootElement.GetProperty("tokens").GetProperty("accessToken").GetString().Should().NotBeNullOrEmpty();
     }
 
     [Theory]
